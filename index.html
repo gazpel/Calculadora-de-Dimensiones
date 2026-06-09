@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora Cajas ENEL</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0f0f0f; --s1:#181818; --s2:#212121; --s3:#2a2a2a;
+  --bd:#303030; --bd2:#3d3d3d;
+  --acc:#e8762b; --acc-dim:#7a3b0f; --acc-glow:rgba(232,118,43,.13);
+  --tx:#f0ece4; --tx2:#9a9690; --tx3:#5a5652;
+  --green:#4caf7d; --green-dim:#1a3d2b;
+  --blue:#5b9bd5; --blue-dim:#1a2d42;
+  --red:#e05252;
+  --mono:'DM Mono',monospace;
+  --disp:'Syne',sans-serif;
+  --r:8px; --rl:14px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px}
+body{background:var(--bg);color:var(--tx);font-family:var(--mono);min-height:100vh}
+
+/* ── LAYOUT ── */
+.app{max-width:720px;margin:0 auto;padding:1.5rem 1rem 4rem}
+
+/* ── HEADER ── */
+.hdr{padding-bottom:1.2rem;margin-bottom:1.5rem;border-bottom:1px solid var(--bd);
+  display:flex;align-items:flex-end;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+.hdr h1{font-family:var(--disp);font-size:1.7rem;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.hdr h1 span{color:var(--acc)}
+.hdr p{color:var(--tx2);font-size:.78rem;margin-top:3px}
+.badge{background:var(--acc-glow);border:1px solid var(--acc-dim);color:var(--acc);
+  font-size:.7rem;padding:3px 9px;border-radius:99px}
+.btn-export{display:flex;align-items:center;gap:5px;padding:6px 12px;
+  background:var(--s2);border:1px solid var(--bd2);border-radius:var(--r);
+  color:var(--tx2);font-family:var(--mono);font-size:.76rem;cursor:pointer;transition:.15s}
+.btn-export:hover{border-color:var(--acc);color:var(--acc)}
+
+/* ── SECTIONS ── */
+.sec{background:var(--s1);border:1px solid var(--bd);border-radius:var(--rl);
+  overflow:hidden;margin-bottom:1rem}
+.sec-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;
+  background:var(--s2);border-bottom:1px solid var(--bd)}
+.sec-hdr .dot{width:7px;height:7px;border-radius:50%;background:var(--acc);flex-shrink:0}
+.sec-hdr h2{font-family:var(--disp);font-size:.72rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:.1em;color:var(--tx2)}
+.sec-hdr .badge-sm{margin-left:auto;font-size:.68rem;color:var(--tx3)}
+.sec-body{padding:14px}
+
+/* ── FIELDS ── */
+.fg{display:flex;flex-direction:column;gap:10px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.f label{display:block;font-size:.7rem;color:var(--tx3);text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:3px}
+.f input,.f select{width:100%;background:var(--s3);border:1px solid var(--bd2);
+  border-radius:var(--r);color:var(--tx);font-family:var(--mono);font-size:.88rem;
+  padding:8px 10px;outline:none;transition:border-color .15s}
+.f input:focus,.f select:focus{border-color:var(--acc)}
+.f input[type=number]{-moz-appearance:textfield}
+.f input[type=number]::-webkit-inner-spin-button{display:none}
+.f select option{background:var(--s3)}
+
+/* ── ESP TOGGLE ── */
+.esp-g{display:flex;gap:6px}
+.esp-btn{flex:1;padding:7px 4px;border:1px solid var(--bd2);border-radius:var(--r);
+  background:var(--s3);color:var(--tx2);font-family:var(--mono);font-size:.82rem;
+  cursor:pointer;transition:.15s;text-align:center}
+.esp-btn.on{border-color:var(--acc);background:var(--acc-glow);color:var(--acc)}
+
+/* ── FORMA TABS ── */
+.ftabs{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap}
+.ftab{padding:5px 12px;border:1px solid var(--bd2);border-radius:99px;
+  background:transparent;color:var(--tx2);font-family:var(--mono);font-size:.76rem;
+  cursor:pointer;transition:.15s}
+.ftab.on{border-color:var(--acc);background:var(--acc-glow);color:var(--acc)}
+
+/* ── HINT ── */
+.hint{font-size:.7rem;color:var(--tx3);padding:7px 10px;background:var(--s2);
+  border-left:2px solid var(--acc-dim);border-radius:0 var(--r) var(--r) 0;margin-bottom:12px}
+
+/* ── PREVIEW ── */
+.prev-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
+.mc{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:10px 12px}
+.mc .ml{font-size:.67rem;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.mc .mv{font-size:1.1rem;font-weight:500;color:var(--tx)}
+.mc.acc .mv{color:var(--acc)}
+.mc .mu{font-size:.67rem;color:var(--tx3)}
+
+/* ── BTN ADD ── */
+.btn-add{width:100%;padding:10px;background:var(--acc);border:none;border-radius:var(--r);
+  color:#fff;font-family:var(--disp);font-size:.8rem;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;cursor:pointer;transition:.15s}
+.btn-add:hover{opacity:.87}
+.btn-add:active{transform:scale(.98)}
+
+/* ── TABLA ── */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:.8rem;min-width:520px}
+thead th{padding:8px 10px;text-align:left;color:var(--tx3);font-size:.67rem;
+  text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--bd);
+  background:var(--s2);white-space:nowrap}
+thead th:not(:first-child){text-align:right}
+tbody tr{border-bottom:1px solid var(--bd);transition:background .1s}
+tbody tr:hover{background:var(--s2)}
+tbody td{padding:9px 10px}
+tbody td:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
+.tn{color:var(--tx);font-weight:500}
+.tag{display:inline-block;font-size:.63rem;padding:1px 5px;border-radius:4px;
+  margin-left:5px;vertical-align:middle;font-weight:500}
+.tr-{background:var(--blue-dim);color:var(--blue)}
+.tl-{background:var(--green-dim);color:var(--green)}
+.tu-{background:var(--acc-glow);color:var(--acc)}
+.td2{color:var(--tx2)}
+.tg{color:var(--green);font-weight:500}
+.ta{color:var(--acc);font-weight:700}
+.btn-del{background:none;border:none;color:var(--tx3);cursor:pointer;
+  font-size:.95rem;padding:2px 6px;border-radius:4px;transition:.15s;line-height:1}
+.btn-del:hover{color:var(--red);background:rgba(224,82,82,.1)}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--tx3);font-size:.8rem}
+.empty .ico{font-size:1.8rem;margin-bottom:6px}
+
+/* ── TOTAL ── */
+.tot-bar{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;background:var(--s2);border-top:1px solid var(--bd)}
+.tot-bar .tl{font-family:var(--disp);font-size:.72rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:.1em;color:var(--tx2)}
+.tot-bar .tv{font-family:var(--disp);font-size:1.5rem;font-weight:800;color:var(--acc)}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--s1)}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:99px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:480px){
+  .app{padding:1rem .75rem 3rem}
+  .hdr h1{font-size:1.4rem}
+  .row3{grid-template-columns:1fr 1fr}
+  .prev-grid{grid-template-columns:1fr 1fr}
+  .mc .mv{font-size:1rem}
+  .tot-bar .tv{font-size:1.25rem}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="hdr">
+    <div>
+      <h1>Cajas <span>ENEL</span></h1>
+      <p>Centro de Costos Artigas — Acero laminado</p>
+    </div>
+    <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+      <span class="badge">v2.0</span>
+      <button class="btn-export" onclick="exportarCSV()">↓ CSV</button>
+    </div>
+  </header>
+
+  <!-- PARÁMETROS -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="dot"></div><h2>Parámetros de precio</h2></div>
+    <div class="sec-body fg">
+      <div class="row3">
+        <div class="f">
+          <label>Precio acero ($/kg)</label>
+          <input type="number" id="ppkg" value="2500" min="0" step="100" oninput="recalc()">
+        </div>
+        <div class="f">
+          <label>Desperdicio (%)</label>
+          <input type="number" id="desp" value="10" min="0" max="50" oninput="recalc()">
+        </div>
+        <div class="f">
+          <label>Margen MOD (%)</label>
+          <input type="number" id="margen" value="25" min="0" max="300" oninput="recalc()">
+        </div>
+      </div>
+      <div class="f">
+        <label>Espesor por defecto</label>
+        <div class="esp-g">
+          <button class="esp-btn on" onclick="setEsp(1.2,this)">1.2 mm</button>
+          <button class="esp-btn" onclick="setEsp(2.0,this)">2.0 mm</button>
+          <button class="esp-btn" onclick="setEsp(2.5,this)">2.5 mm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NUEVA CAJA -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="dot"></div><h2>Nueva caja</h2></div>
+    <div class="sec-body">
+
+      <div class="ftabs">
+        <button class="ftab on" onclick="setForma('rect',this)">Rectangular</button>
+        <button class="ftab" onclick="setForma('l',this)">Forma L</button>
+        <button class="ftab" onclick="setForma('u',this)">Forma U</button>
+      </div>
+
+      <div id="hint-rect" class="hint">Caja cerrada con 6 caras planas. Ej: 780×780×650 mm</div>
+      <div id="hint-l"    class="hint" style="display:none">Dos tramos perpendiculares mismo ancho y alto. Ej: corredor piso 1°</div>
+      <div id="hint-u"    class="hint" style="display:none">Caja exterior con canal interior abierto arriba/abajo. Ej: detalle BPC</div>
+
+      <div class="fg">
+        <div class="f">
+          <label>Nombre / referencia</label>
+          <input type="text" id="f-nom" placeholder="Ej: Caja #5 piso 2">
+        </div>
+
+        <!-- RECT -->
+        <div id="d-rect">
+          <div class="row3">
+            <div class="f"><label>Largo (mm)</label><input type="number" id="r-l" value="780" min="1" oninput="updPrev()"></div>
+            <div class="f"><label>Ancho (mm)</label><input type="number" id="r-a" value="780" min="1" oninput="updPrev()"></div>
+            <div class="f"><label>Alto (mm)</label> <input type="number" id="r-h" value="650" min="1" oninput="updPrev()"></div>
+          </div>
+        </div>
+
+        <!-- FORMA L -->
+        <div id="d-l" style="display:none">
+          <div class="row2">
+            <div class="f"><label>Tramo A — largo (mm)</label><input type="number" id="l-a1" value="1560" min="1" oninput="updPrev()"></div>
+            <div class="f"><label>Tramo B — largo (mm)</label><input type="number" id="l-a2" value="635"  min="1" oninput="updPrev()"></div>
+          </div>
+          <div class="row2" style="margin-top:10px">
+            <div class="f"><label>Ancho (mm)</label><input type="number" id="l-w" value="250" min="1" oninput="updPrev()"></div>
+            <div class="f"><label>Alto (mm)</label> <input type="number" id="l-h" value="300" min="1" oninput="updPrev()"></div>
+          </div>
+        </div>
+
+        <!-- FORMA U -->
+        <div id="d-u" style="display:none">
+          <div class="row3">
+            <div class="f"><label>Largo ext. (mm)</label><input type="number" id="u-le" value="1890" min="1" oninput="updPrev()"></div>
+            <div class="f"><label>Ancho ext. (mm)</label><input type="number" id="u-ae" value="1400" min="1" oninput="updPrev()"></div>
+            <div class="f"><label>Alto (mm)</label>       <input type="number" id="u-h"  value="300"  min="1" oninput="updPrev()"></div>
+          </div>
+          <div class="row2" style="margin-top:10px">
+            <div class="f"><label>Canal largo (mm)</label><input type="number" id="u-lc" value="1250" min="1" oninput="updPrev()"></div>
+            <div class="f"><label>Canal ancho (mm)</label><input type="number" id="u-ac" value="250"  min="1" oninput="updPrev()"></div>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="f">
+            <label>Cantidad</label>
+            <input type="number" id="f-cant" value="1" min="1" oninput="updPrev()">
+          </div>
+          <div class="f">
+            <label>Espesor propio (mm) — opcional</label>
+            <input type="number" id="f-esp" value="" placeholder="Usa el global" min="0.1" step="0.1" oninput="updPrev()">
+          </div>
+        </div>
+      </div>
+
+      <!-- PREVIEW -->
+      <div class="prev-grid" id="prev"></div>
+
+      <button class="btn-add" onclick="agregar()">+ Agregar a la lista</button>
+    </div>
+  </div>
+
+  <!-- LISTA -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="dot"></div>
+      <h2>Lista de cajas</h2>
+      <span class="badge-sm" id="cnt"></span>
+    </div>
+
+    <div id="empty" class="empty">
+      <div class="ico">□</div>
+      Agrega cajas desde el panel de arriba
+    </div>
+
+    <div class="tbl-wrap" id="tbl-wrap" style="display:none">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Esp.</th>
+            <th>Área m²</th>
+            <th>Peso kg</th>
+            <th>$/unit</th>
+            <th>Cant.</th>
+            <th>Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="tot-bar">
+      <span class="tl">Total proyecto</span>
+      <span class="tv" id="total">$0</span>
+    </div>
+  </div>
+
+</div>
+<script>
+const DEN=7850;
+let espG=1.2, forma='rect', cajas=[];
+
+function P(){
+  return{
+    ppkg:parseFloat(document.getElementById('ppkg').value)||0,
+    desp:(parseFloat(document.getElementById('desp').value)||0)/100,
+    mg:(parseFloat(document.getElementById('margen').value)||0)/100
+  };
+}
+
+function setEsp(v,btn){
+  espG=v;
+  document.querySelectorAll('.esp-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  updPrev(); renderTabla();
+}
+
+function setForma(f,btn){
+  forma=f;
+  ['rect','l','u'].forEach(t=>{
+    document.getElementById('d-'+t).style.display=t===f?'':'none';
+    document.getElementById('hint-'+t).style.display=t===f?'':'none';
+  });
+  document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  updPrev();
+}
+
+function aRect(l,a,h){return 2*(l*a+l*h+a*h)}
+function aL(a1,a2,w,h){return aRect(a1,w,h)+aRect(a2,w,h)-2*(w*h)}
+function aU(le,ae,h,lc,ac){return aRect(le,ae,h)-2*(lc*ac)}
+
+function calcArea(c){
+  const d=c.d;
+  if(c.f==='rect')return aRect(d.l,d.a,d.h);
+  if(c.f==='l')   return aL(d.a1,d.a2,d.w,d.h);
+  if(c.f==='u')   return aU(d.le,d.ae,d.h,d.lc,d.ac);
+  return 0;
+}
+function calcPeso(mm2,esp){return(mm2/1e6)*(esp/1000)*DEN}
+function calcPU(peso){const{ppkg,desp,mg}=P();return peso*ppkg*(1+desp)*(1+mg)}
+
+function leer(){
+  const espV=parseFloat(document.getElementById('f-esp').value);
+  const esp=(espV&&espV>0)?espV:espG;
+  const cant=parseInt(document.getElementById('f-cant').value)||1;
+  const nom=document.getElementById('f-nom').value.trim()||'Caja';
+  let d={};
+  if(forma==='rect') d={l:+v('r-l'),a:+v('r-a'),h:+v('r-h')};
+  else if(forma==='l') d={a1:+v('l-a1'),a2:+v('l-a2'),w:+v('l-w'),h:+v('l-h')};
+  else d={le:+v('u-le'),ae:+v('u-ae'),h:+v('u-h'),lc:+v('u-lc'),ac:+v('u-ac')};
+  return{nom,f:forma,d,esp,cant};
+}
+function v(id){return document.getElementById(id).value||0}
+
+function updPrev(){
+  const c=leer();
+  const mm2=calcArea(c);
+  const peso=calcPeso(mm2,c.esp);
+  const pu=calcPU(peso);
+  document.getElementById('prev').innerHTML=`
+    <div class="mc"><div class="ml">Área unit.</div><div class="mv">${(mm2/1e6).toFixed(3)}</div><div class="mu">m²</div></div>
+    <div class="mc"><div class="ml">Peso unit.</div><div class="mv">${peso.toFixed(2)}</div><div class="mu">kg · ${c.esp}mm</div></div>
+    <div class="mc acc"><div class="ml">Precio unit.</div><div class="mv">${fmt(pu)}</div><div class="mu">$</div></div>
+    <div class="mc acc"><div class="ml">× ${c.cant} uds.</div><div class="mv">${fmt(pu*c.cant)}</div><div class="mu">$ total</div></div>`;
+}
+
+function agregar(){
+  cajas.push(leer());
+  renderTabla();
+}
+
+function eliminar(i){cajas.splice(i,1);renderTabla()}
+
+const TAGS={rect:['RECT','tr-'],l:['L','tl-'],u:['U','tu-']};
+
+function renderTabla(){
+  const tb=document.getElementById('tbody');
+  const em=document.getElementById('empty');
+  const tw=document.getElementById('tbl-wrap');
+  const tot=document.getElementById('total');
+  const cnt=document.getElementById('cnt');
+  if(!cajas.length){
+    em.style.display='';tw.style.display='none';
+    tot.textContent='$0';cnt.textContent='';return;
+  }
+  em.style.display='none';tw.style.display='';
+  cnt.textContent=cajas.length+' item'+(cajas.length>1?'s':'');
+  let sum=0,html='';
+  cajas.forEach((c,i)=>{
+    const mm2=calcArea(c);
+    const p=calcPeso(mm2,c.esp);
+    const pu=calcPU(p);
+    const pt=pu*c.cant;
+    sum+=pt;
+    const [lbl,cls]=TAGS[c.f];
+    html+=`<tr>
+      <td class="tn">${esc(c.nom)}<span class="tag ${cls}">${lbl}</span></td>
+      <td class="td2">${c.esp}mm</td>
+      <td class="td2">${(mm2/1e6).toFixed(3)}</td>
+      <td class="td2">${p.toFixed(1)}</td>
+      <td class="tg">${fmt(pu)}</td>
+      <td class="td2">${c.cant}</td>
+      <td class="ta">${fmt(pt)}</td>
+      <td><button class="btn-del" onclick="eliminar(${i})">✕</button></td>
+    </tr>`;
+  });
+  tb.innerHTML=html;
+  tot.textContent='$'+fmt(sum);
+}
+
+function recalc(){updPrev();renderTabla()}
+
+function exportarCSV(){
+  if(!cajas.length){alert('No hay cajas para exportar.');return}
+  const{ppkg,desp,mg}=P();
+  let csv='Nombre,Forma,Esp.mm,Area m2,Peso kg,Precio unit.,Cantidad,Total\n';
+  let sum=0;
+  cajas.forEach(c=>{
+    const mm2=calcArea(c);
+    const p=calcPeso(mm2,c.esp);
+    const pu=calcPU(p);
+    const pt=pu*c.cant;
+    sum+=pt;
+    csv+=`"${c.nom}",${c.f.toUpperCase()},${c.esp},${(mm2/1e6).toFixed(4)},${p.toFixed(2)},${pu.toFixed(0)},${c.cant},${pt.toFixed(0)}\n`;
+  });
+  csv+=`\nTOTAL,,,,,,,${sum.toFixed(0)}\nParámetros: $/kg=${ppkg} | Desperdicio=${desp*100}% | Margen=${mg*100}%\n`;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download='cajas_enel_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+
+function fmt(n){return Math.round(n).toLocaleString('es-CL')}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+updPrev();
+</script>
+</body>
+</html>
